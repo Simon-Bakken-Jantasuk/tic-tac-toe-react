@@ -3,6 +3,7 @@ import { useState } from 'react';
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
+  const [sort, setSort] = useState(false);
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
 
@@ -15,6 +16,7 @@ export default function Game() {
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);
   }
+
   const moves = history.map((squares, move) => {
     let description;
     if (move > 0) {
@@ -35,7 +37,8 @@ export default function Game() {
         <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay}/>
       </div>
       <div className="game-info">
-        <ol>{moves}</ol>
+        <button onClick={() => setSort(!sort)}>{sort ? "Sort in acending order" : "Sort in decending order"}</button>
+        <ol>{sort ? moves.reverse() : moves}</ol>
       </div>
     </div>
   );
