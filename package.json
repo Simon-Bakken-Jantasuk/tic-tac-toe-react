@@ -6,7 +6,13 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
+<<<<<<< HEAD
     "eject": "react-scripts eject"
+=======
+    "eject": "react-scripts eject",
+    "predeploy" : "npm run build",
+    "deploy" : "gh-pages -d build"
+>>>>>>> 8b6ddf1 (deploy)
   },
   "dependencies": {
     "react": "^18.0.0",
