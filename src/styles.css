@@ -88,3 +88,11 @@ body {
 .game-info {
   margin-left: 20px;
 }
+
+.square.green {
+  background-color: green;
+}
+
+.square.red {
+  background-color: red;
+}

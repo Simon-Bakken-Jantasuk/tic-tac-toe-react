@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
@@ -11,6 +11,10 @@ export default function Game() {
     const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
+
+    if (nextSquares.every(square => square !== null) && !calculateWinner(nextSquares)) {
+      alert("It's a draw!");
+    }
   }
 
   function jumpTo(nextMove) {
@@ -44,8 +48,8 @@ export default function Game() {
   );
 }
 
-function Square({value, onSquareClick}) {
-  return <button className="square" onClick={onSquareClick}>{value}</button>;
+function Square({value, onSquareClick, color}) {
+  return <button className={!color ? "square" : `square ${color}`} onClick={onSquareClick}>{value}</button>;
 }
 
 function Board({xIsNext, squares, onPlay}) {
@@ -60,12 +64,13 @@ function Board({xIsNext, squares, onPlay}) {
     onPlay(nextSquares); 
   }
 
-  const winner = calculateWinner(squares);
+
   let status;
+  const winner = calculateWinner(squares);
   if (winner) {
-    status = `Winner: ${winner}`
+    status = `Winner: ${winner.name}`;
   } else {
-    status = `Next player: ${xIsNext ? "X" : "O"}` 
+    status = `Next player: ${xIsNext ? "X" : "O"}`;
   } 
 
   return (
@@ -82,6 +87,7 @@ function Board({xIsNext, squares, onPlay}) {
                   key={squareIndex} 
                   value={squares[squareIndex]} 
                   onSquareClick={() => handleClick(squareIndex)}
+                  color={getColorIndicator(squareIndex, winner)}
                 />
               );
 
@@ -107,8 +113,17 @@ function calculateWinner(squares) {
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+      return { name: squares[a], index: lines[i]};
     }
   }
   return null;
+}
+
+function getColorIndicator(squareIndex, winner) {
+  if (winner && winner.index.includes(squareIndex)) {
+    return "green"; 
+  } else if (winner) {
+    return "red";
+  } 
+  return null; 
 }
