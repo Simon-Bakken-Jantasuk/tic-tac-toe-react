@@ -29,9 +29,11 @@ export default function Game() {
       description = "Go to game start";
     }
     return (
-      <li key={move}>
-        <button onClick={() => jumpTo(move)}>{description}</button>
-      </li>
+      <>
+        <li key={move}>
+          <button onClick={() => jumpTo(move)}>{description}</button>
+        </li>
+      </>
     );
   });
 
