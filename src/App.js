@@ -39,11 +39,7 @@ export default function Game() {
     }
     
     return (
-<<<<<<< HEAD
-      <li key={move.toString()}>
-=======
       <li key={move}>
->>>>>>> feat-task-1
         <button onClick={() => jumpTo(move)}>{description}</button>
       </li>
     );
