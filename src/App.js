@@ -4,6 +4,7 @@ export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
   const [sort, setSort] = useState(false);
+  const [button, setButton] = useState(true);
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
 
@@ -21,15 +22,28 @@ export default function Game() {
     setCurrentMove(nextMove);
   }
 
-  const moves = history.map((_, move) => {
+  const moves = history.map((square, move) => {
     let description;
-    if (move > 0) {
+
+    if (move == currentMove) {
+      description = `You are at # ${move}`
+      return (
+        <li key={move}>
+          <p>{description}</p>
+        </li>
+      );
+    } else if (move > 0){
       description = `Go to move # ${move}`;
     } else {
       description = "Go to game start";
     }
+    
     return (
+<<<<<<< HEAD
       <li key={move.toString()}>
+=======
+      <li key={move}>
+>>>>>>> feat-task-1
         <button onClick={() => jumpTo(move)}>{description}</button>
       </li>
     );
