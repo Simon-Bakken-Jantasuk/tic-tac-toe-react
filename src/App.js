@@ -1,14 +1,14 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
 export default function Game() {
-  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [history, setHistory] = useState([{ squares: Array(9).fill(null), lastMove: null}]);
   const [currentMove, setCurrentMove] = useState(0);
   const [sort, setSort] = useState(false);
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
 
-  function handlePlay(nextSquares) {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+  function handlePlay(nextSquares, squareIndex) {
+    const nextHistory = [...history.slice(0, currentMove + 1), { squares: nextSquares, lastMove: squareIndex}];
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
 
@@ -21,9 +21,8 @@ export default function Game() {
     setCurrentMove(nextMove);
   }
 
-  const moves = history.map((square, move) => {
+  const moves = history.map((currentHistory, move) => {
     let description;
-
     if (move == currentMove) {
       description = `You are at # ${move}`
       return (
@@ -32,7 +31,9 @@ export default function Game() {
         </li>
       );
     } else if (move > 0){
-      description = `Go to move # ${move}`;
+      const row = Math.floor(currentHistory.lastMove / 3) + 1;
+      const col = (currentHistory.lastMove % 3) + 1;
+      description = `Go to move # (${row}, ${col})`;
     } else {
       description = "Go to game start";
     }
@@ -47,7 +48,7 @@ export default function Game() {
   return (
     <div className="game">
       <div className="game-board">
-        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay}/>
+        <Board xIsNext={xIsNext} squares={currentSquares.squares} onPlay={handlePlay}/>
       </div>
       <div className="game-info">
         <button onClick={() => setSort(!sort)}>{sort ? "Sort in acending order" : "Sort in decending order"}</button>
@@ -70,7 +71,7 @@ function Board({xIsNext, squares, onPlay}) {
     } else {
       nextSquares[i] = "O";
     };
-    onPlay(nextSquares); 
+    onPlay(nextSquares, i); 
   }
 
 
