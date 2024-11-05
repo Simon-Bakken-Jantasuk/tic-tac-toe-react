@@ -63,15 +63,15 @@ function Square({value, onSquareClick, color}) {
 }
 
 function Board({xIsNext, squares, onPlay}) {
-  function handleClick(i) {
-    if (squares[i] || calculateWinner(squares)) { return };
+  function handleClick(squareIndex) {
+    if (squares[squareIndex] || calculateWinner(squares)) { return };
     const nextSquares = squares.slice(); 
     if (xIsNext) {
-      nextSquares[i] = "X";
+      nextSquares[squareIndex] = "X";
     } else {
-      nextSquares[i] = "O";
+      nextSquares[squareIndex] = "O";
     };
-    onPlay(nextSquares, i); 
+    onPlay(nextSquares, squareIndex); 
   }
 
 
