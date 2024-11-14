@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { Board } from './components/Board';
+import { History } from './components/History';
+import { calculateWinner } from './utils/calculateWinner';
 
 export default function Game() {
   const [history, setHistory] = useState([{ squares: Array(9).fill(null), lastMove: null}]);
@@ -47,93 +50,8 @@ export default function Game() {
 
   return (
     <div className="game">
-      <div className="game-board">
-        <Board xIsNext={xIsNext} squares={currentSquares.squares} onPlay={handlePlay}/>
-      </div>
-      <div className="game-info">
-        <button onClick={() => setSort(!sort)}>{sort ? "Sort in acending order" : "Sort in decending order"}</button>
-        <ol>{sort ? moves.reverse() : moves}</ol>
-      </div>
+      <Board xIsNext={xIsNext} squares={currentSquares.squares} onPlay={handlePlay}/>
+      <History sort={sort} moves={moves} setSort={setSort} />
     </div>
   );
-}
-
-function Square({value, onSquareClick, color}) {
-  return <button className={!color ? "square" : `square ${color}`} onClick={onSquareClick}>{value}</button>;
-}
-
-function Board({xIsNext, squares, onPlay}) {
-  function handleClick(squareIndex) {
-    if (squares[squareIndex] || calculateWinner(squares)) { return };
-    const nextSquares = squares.slice(); 
-    if (xIsNext) {
-      nextSquares[squareIndex] = "X";
-    } else {
-      nextSquares[squareIndex] = "O";
-    };
-    onPlay(nextSquares, squareIndex); 
-  }
-
-
-  let status;
-  const winner = calculateWinner(squares);
-  if (winner) {
-    status = `Winner: ${winner.name}`;
-  } else {
-    status = `Next player: ${xIsNext ? "X" : "O"}`;
-  } 
-
-  return (
-    <>
-      <div className="status">{status}</div>
-      {Array(3).fill(null).map((_, rowIndex)=> {
-        return (
-          <div className="board-row" key={rowIndex}>
-            {Array(3).fill(null).map((_, colIndex) => {
-              const squareIndex = rowIndex * 3 + colIndex;
-
-              return (
-                <Square 
-                  key={squareIndex} 
-                  value={squares[squareIndex]} 
-                  onSquareClick={() => handleClick(squareIndex)}
-                  color={getColorIndicator(squareIndex, winner)}
-                />
-              );
-
-            })}
-          </div>
-        );
-      })}
-    </>
-  );
-}
-
-function calculateWinner(squares) {
-    const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6]
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return { name: squares[a], index: lines[i]};
-    }
-  }
-  return null;
-}
-
-function getColorIndicator(squareIndex, winner) {
-  if (winner && winner.index.includes(squareIndex)) {
-    return "green"; 
-  } else if (winner) {
-    return "red";
-  } 
-  return null; 
 }
