@@ -1,0 +1,76 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const cors = require('cors');
+
+const app = express();
+app.use(cors());
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:3000', 
+    methods: ['GET', 'POST']
+  }
+});
+
+const onlinePlayers = {}; 
+
+io.on('connection', (socket) => {
+  socket.on('join', (username) => {
+    onlinePlayers[socket.id] = username;
+    io.emit('onlinePlayers', Object.values(onlinePlayers)); 
+  });
+
+  socket.on('gameRequest', (targetUsername) => {
+    const targetSocketId = Object.keys(onlinePlayers).find(
+      (id) => onlinePlayers[id] === targetUsername
+    );
+
+    socket.join(`${onlinePlayers[socket.id]}-${onlinePlayers[targetSocketId]}`);
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('gameRequest', onlinePlayers[socket.id]);
+    }
+  });
+
+  socket.on('acceptRequest', (fromUsername) => {
+    const targetSocketId = Object.keys(onlinePlayers).find(
+      (id) => onlinePlayers[id] === fromUsername
+    );
+
+    const room = `${onlinePlayers[targetSocketId]}-${onlinePlayers[socket.id]}`;
+
+    socket.join(room);
+    
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("acceptRequest", onlinePlayers[socket.id]);
+      io.in(room).emit('gameAccepted', room);
+    };
+  });
+  
+  socket.on('playMove', (data) => {
+    // Can be optimized futher, checking the whole list for each move is tiresome.
+    const targetSocketId = Object.keys(onlinePlayers).find(
+      (id) => onlinePlayers[id] === data.opponent 
+    );
+    
+    io.to(data.room).emit("updateBoard", data)
+    io.to(targetSocketId).emit("changeTurn", true)
+  });
+
+  socket.on("reset", (gameRoom, status) => {
+    // both players leave room
+    // both players have their states (excluding username state)
+    console.log("Reset", gameRoom, status)
+  });
+
+  socket.on('disconnect', () => {
+    delete onlinePlayers[socket.id];
+    io.emit('onlinePlayers', Object.values(onlinePlayers)); 
+  });
+});
+
+server.listen(4000, () => {
+  console.log('Server is running on port 4000');
+});

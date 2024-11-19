@@ -96,3 +96,7 @@ body {
 .square.red {
   background-color: red;
 }
+
+.game-board {
+  margin-left: 10px;
+}
