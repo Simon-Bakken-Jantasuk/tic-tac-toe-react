@@ -1,8 +1,7 @@
-// Login.js
-import { useState } from 'react';
+import { useState } from "react";
 
 export default function Login({ onLoginSubmit }) {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();

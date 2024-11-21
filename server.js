@@ -1,7 +1,7 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
 
 const app = express();
 app.use(cors());
@@ -9,14 +9,14 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000', 
-    methods: ['GET', 'POST']
+    origin: process.env.CLIENT_URL || "http://localhost:3000", 
+    methods: ["GET", "POST"]
   }
 });
 
 const onlinePlayers = {}; 
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   socket.on("validateUsername", (username, callback) => {
     const isTaken = Object.values(onlinePlayers).includes(username);
     callback(!isTaken); 
@@ -24,11 +24,11 @@ io.on('connection', (socket) => {
 
   socket.on("addUser", (username) => {
     onlinePlayers[socket.id] = username;
-    io.emit('onlinePlayers', Object.values(onlinePlayers)); 
+    io.emit("onlinePlayers", Object.values(onlinePlayers)); 
     console.log(`${username} joined. Current users:`, onlinePlayers);
   });
 
-  socket.on('gameRequest', (targetUsername) => {
+  socket.on("gameRequest", (targetUsername) => {
     const targetSocketId = Object.keys(onlinePlayers).find(
       (id) => onlinePlayers[id] == targetUsername
     );
@@ -36,11 +36,11 @@ io.on('connection', (socket) => {
     socket.join(`${onlinePlayers[socket.id]}-${onlinePlayers[targetSocketId]}`);
 
     if (targetSocketId) {
-      io.to(targetSocketId).emit('gameRequest', onlinePlayers[socket.id]);
+      io.to(targetSocketId).emit("gameRequest", onlinePlayers[socket.id]);
     }
   });
 
-  socket.on('acceptRequest', (fromUsername) => {
+  socket.on("acceptRequest", (fromUsername) => {
     const targetSocketId = Object.keys(onlinePlayers).find(
       (id) => onlinePlayers[id] == fromUsername
     );
@@ -51,11 +51,11 @@ io.on('connection', (socket) => {
     
     if (targetSocketId) {
       io.to(targetSocketId).emit("acceptRequest", onlinePlayers[socket.id]);
-      io.in(room).emit('gameAccepted', room);
+      io.in(room).emit("gameAccepted", room);
     };
   });
   
-  socket.on('playMove', (data) => {
+  socket.on("playMove", (data) => {
     // Can be optimized futher, checking the whole list for each move is tiresome.
     const targetSocketId = Object.keys(onlinePlayers).find(
       (id) => onlinePlayers[id] == data.opponent 
@@ -83,15 +83,15 @@ io.on('connection', (socket) => {
       }
   });
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     const username = onlinePlayers[socket.id];
     if (username) {
       delete onlinePlayers[socket.id];
-      io.emit('onlinePlayers', Object.values(onlinePlayers)); 
+      io.emit("onlinePlayers", Object.values(onlinePlayers)); 
     }
   });
 });
 
 server.listen(4000, () => {
-  console.log('Server is running on port 4000');
+  console.log("Server is running on port 4000");
 });

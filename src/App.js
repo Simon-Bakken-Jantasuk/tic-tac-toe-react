@@ -1,11 +1,11 @@
-import { useState, useEffect, useReducer } from 'react';
-import { socket } from './utils/socket';
-import { Board } from './components/Board';
-// import { History } from './components/History';
-// import { calculateWinner } from './utils/calculateWinner';
-import OnlinePlayers from './components/OnlinePlayers';
-import Login from './components/Login';
-import Reconnect from './components/Reconnect';
+import { useState, useEffect, useReducer } from "react";
+import { socket } from "./utils/socket";
+import { Board } from "./components/Board";
+// import { History } from "./components/History";
+// import { calculateWinner } from "./utils/calculateWinner";
+import OnlinePlayers from "./components/OnlinePlayers";
+import Login from "./components/Login";
+import Reconnect from "./components/Reconnect";
 
 
 function createInitialState() {
