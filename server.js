@@ -9,7 +9,7 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://tic-tac-toe-react-socketio-03fdff0edcf9.herokuapp.com",
+    origin: "http://tic-tac-toe-react-socketio-03fdff0edcf9.herokuapp.com",
     // origin: process.env.CLIENT_URL || "http://localhost:3000", 
     methods: ["GET", "POST"]
   }
