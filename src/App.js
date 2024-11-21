@@ -1,60 +1,119 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useReducer } from 'react';
 import { socket } from './utils/socket';
 import { Board } from './components/Board';
-import { History } from './components/History';
-import { calculateWinner } from './utils/calculateWinner';
+// import { History } from './components/History';
+// import { calculateWinner } from './utils/calculateWinner';
 import OnlinePlayers from './components/OnlinePlayers';
 import Login from './components/Login';
+import Reconnect from './components/Reconnect';
 
-// TODO:
-// CHANGE STATES TO USE REDUCER TO HANDLE A WAY TO RESET BOARD
+
+function createInitialState() {
+  const history = [{ squares: Array(9).fill(null), lastMove: null }];
+  const currentMove = 0;
+  const inGame = false;
+  const opponent = null;
+  const playerTurn = false;
+  const room = "";
+
+  return {
+    history,
+    currentMove,
+    inGame,
+    opponent,
+    playerTurn,
+    room,
+  };
+}
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "SET_HISTORY":
+      return { ...state, history: action.payload };
+    case "SET_CURRENT_MOVE":
+      return { ...state, currentMove: action.payload };
+    case "SET_IN_GAME":
+      return { ...state, inGame: action.payload };
+    case "SET_OPPONENT":
+      return { ...state, opponent: action.payload };
+    case "SET_PLAYER_TURN":
+      return { ...state, playerTurn: action.payload };
+    case "SET_ROOM":
+      return { ...state, room: action.payload };
+    case "RESET_GAME":
+      return createInitialState();
+    default:
+      return state;
+  }
+}
+
 export default function Game() {
-  const [history, setHistory] = useState([{ squares: Array(9).fill(null), lastMove: null }]);
-  const [currentMove, setCurrentMove] = useState(0);
-  const [sort, setSort] = useState(false);
-  const [inGame, setInGame] = useState(false);
-  const [username, setUsername] = useState("");
-  const [opponent, setOpponent] = useState(null);
-  const [isPlayerTurn, setIsPlayerTurn] = useState(false);
-  const [gameRoom, setGameRoom] = useState("");
+  const [state, dispatch] = useReducer(reducer, createInitialState());
 
+  const { 
+    history, 
+    currentMove, 
+    inGame, 
+    opponent, 
+    playerTurn, 
+    room 
+  } = state;
+
+  const [username, setUsername] = useState("");
+  const [error, setError] = useState(""); 
+  
   const xIsNext = currentMove % 2 === 0;
+
+  // const [sort, setSort] = useState(false);
+  
   const currentSquares = history[currentMove];
 
-  const handleLoginSubmit = (username) => {
-    setUsername(username);
-    socket.emit('join', username); 
+  const handleLoginSubmit = (inputUsername) => {
+    socket.emit("validateUsername", inputUsername, (isValid) => {
+      if (isValid) {
+        setUsername(inputUsername); 
+        socket.emit("addUser", inputUsername); 
+      } else {
+        setError("Username is already taken. Please choose another.");
+        alert("error");
+      }
+    });
   };
 
   useEffect(() => {
-    socket.on('updateBoard', (data) => {
-      updateBoard(data.squares, data.squareIndex);
-    });
+    socket.on("opponentLeft", () => {
+      handleReset();
+    })
 
-    socket.on('changeTurn', turn => setIsPlayerTurn(turn));
+    socket.on("updateBoard", (data) => {
+      updateBoard(data.squares, data.squareIndex);
+    })
+
+    socket.on("changeTurn", (turn) => dispatch({ type: "SET_PLAYER_TURN", payload: turn }));
 
     socket.on("gameAccepted", (room) => {
-      setGameRoom(room);
-      setInGame(true);
-    });
+      dispatch({ type: "SET_ROOM", payload: room });
+      dispatch({ type: "SET_IN_GAME", payload: true });
+    })
 
     return () => {
+      socket.off("opponentLeft");
       socket.off("updateBoard");
       socket.off("changeTurn");
       socket.off("gameAccepted");
-    };
+    }
 
   }, [history, currentMove]);
 
   function handlePlay(nextSquares, squareIndex) {
-    if (!isPlayerTurn) return; 
+    if (!playerTurn) return; 
 
-    setIsPlayerTurn(false);
+    dispatch({ type: "SET_PLAYER_TURN", payload: false });
 
-    socket.emit('playMove', {
+    socket.emit("playMove", {
       player: username,
       opponent: opponent,
-      room: gameRoom,
+      room: room,
       squares: nextSquares,
       squareIndex: squareIndex,
     });
@@ -66,42 +125,19 @@ export default function Game() {
       { squares: nextSquares, lastMove: squareIndex }
     ];
 
-    setHistory(nextHistory);
-    setCurrentMove(nextHistory.length - 1);
+    dispatch({ type: "SET_HISTORY", payload: nextHistory });
+    dispatch({ type: "SET_CURRENT_MOVE", payload: nextHistory.length - 1 });
   }
 
   function startGameWith(player, playerTurn) {
-    setOpponent(player);
-    setIsPlayerTurn(playerTurn); 
+    dispatch({ type: "SET_OPPONENT", payload: player });
+    dispatch({ type: "SET_PLAYER_TURN", payload: playerTurn }); 
   }
-  
-  // function jumpTo(nextMove) {
-  //   setCurrentMove(nextMove);
-  // }
 
-  // const moves = history.map((currentHistory, move) => {
-  //   let description;
-  //   if (move === currentMove) {
-  //     description = `You are at # ${move}`;
-  //     return (
-  //       <li key={move}>
-  //         <p>{description}</p>
-  //       </li>
-  //     );
-  //   } else if (move > 0) {
-  //     const row = Math.floor(currentHistory.lastMove / 3) + 1;
-  //     const col = (currentHistory.lastMove % 3) + 1;
-  //     description = `Go to move # (${row}, ${col})`;
-  //   } else {
-  //     description = "Go to game start";
-  //   }
+  function handleReset() {
+    dispatch({ type: "RESET_GAME" });
+  }
 
-  //   return (
-  //     <li key={move}>
-  //       <button onClick={() => jumpTo(move)}>{description}</button>
-  //     </li>
-  //   );
-  // });
 
   return (
     <div className="game">
@@ -109,15 +145,23 @@ export default function Game() {
         <Login onLoginSubmit={handleLoginSubmit} />
       ) : (
         <>
-          <OnlinePlayers username={username} onGameStart={startGameWith} />
+          <OnlinePlayers 
+            username={username} 
+            onGameStart={startGameWith} 
+          />
           {inGame && (
-            <>
-              <Board xIsNext={xIsNext} squares={currentSquares.squares} gameRoom={gameRoom} onPlay={handlePlay} />
-              {/* <History sort={sort} moves={moves} setSort={setSort} /> */}
-            </>
+              <Board 
+                room={room} 
+                xIsNext={xIsNext} 
+                squares={currentSquares.squares} 
+                onPlay={handlePlay} 
+                onReset={handleReset} 
+              />
           )}
         </>
       )}
     </div>
   );
 }
+
+{/* <History sort={sort} moves={moves} setSort={setSort} /> */}

@@ -20,6 +20,8 @@ export default function OnlinePlayers({username, onGameStart}) {
       onGameStart(fromUsername, false);
     });
 
+    console.log(players);
+
     return () => {
       socket.off('onlinePlayers');
       socket.off('gameRequest');

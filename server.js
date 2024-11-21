@@ -17,14 +17,20 @@ const io = new Server(server, {
 const onlinePlayers = {}; 
 
 io.on('connection', (socket) => {
-  socket.on('join', (username) => {
+  socket.on("validateUsername", (username, callback) => {
+    const isTaken = Object.values(onlinePlayers).includes(username);
+    callback(!isTaken); 
+  });
+
+  socket.on("addUser", (username) => {
     onlinePlayers[socket.id] = username;
     io.emit('onlinePlayers', Object.values(onlinePlayers)); 
+    console.log(`${username} joined. Current users:`, onlinePlayers);
   });
 
   socket.on('gameRequest', (targetUsername) => {
     const targetSocketId = Object.keys(onlinePlayers).find(
-      (id) => onlinePlayers[id] === targetUsername
+      (id) => onlinePlayers[id] == targetUsername
     );
 
     socket.join(`${onlinePlayers[socket.id]}-${onlinePlayers[targetSocketId]}`);
@@ -36,7 +42,7 @@ io.on('connection', (socket) => {
 
   socket.on('acceptRequest', (fromUsername) => {
     const targetSocketId = Object.keys(onlinePlayers).find(
-      (id) => onlinePlayers[id] === fromUsername
+      (id) => onlinePlayers[id] == fromUsername
     );
 
     const room = `${onlinePlayers[targetSocketId]}-${onlinePlayers[socket.id]}`;
@@ -52,22 +58,37 @@ io.on('connection', (socket) => {
   socket.on('playMove', (data) => {
     // Can be optimized futher, checking the whole list for each move is tiresome.
     const targetSocketId = Object.keys(onlinePlayers).find(
-      (id) => onlinePlayers[id] === data.opponent 
+      (id) => onlinePlayers[id] == data.opponent 
     );
     
     io.to(data.room).emit("updateBoard", data)
     io.to(targetSocketId).emit("changeTurn", true)
   });
 
-  socket.on("reset", (gameRoom, status) => {
-    // both players leave room
-    // both players have their states (excluding username state)
-    console.log("Reset", gameRoom, status)
+  socket.on("leaveRoom", (room) => {
+    socket.leave(room);
+  });
+
+  socket.on("disconnecting", () => {
+    const roomName = Array.from(socket.rooms)[1]; 
+    if (roomName) {
+        const room = io.sockets.adapter.rooms.get(roomName);
+        
+        const socketIds = Array.from(room);
+        const targetSocketId = socketIds.find(id => id !== socket.id); 
+
+        if (targetSocketId) {
+          io.to(targetSocketId).emit("opponentLeft");
+        }
+      }
   });
 
   socket.on('disconnect', () => {
-    delete onlinePlayers[socket.id];
-    io.emit('onlinePlayers', Object.values(onlinePlayers)); 
+    const username = onlinePlayers[socket.id];
+    if (username) {
+      delete onlinePlayers[socket.id];
+      io.emit('onlinePlayers', Object.values(onlinePlayers)); 
+    }
   });
 });
 
