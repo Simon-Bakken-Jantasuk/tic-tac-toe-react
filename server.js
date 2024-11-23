@@ -7,11 +7,12 @@ const app = express();
 app.use(cors());
 
 const port = process.env.PORT || 4000
-
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://tic-tac-toe-react-socketio-03fdff0edcf9.herokuapp.com", `wss://tic-tac-toe-react-socketio-03fdff0edcf9.herokuapp.com:${port}`],
+    origin: process.env.NODE_ENV === "production"
+    ? ["https://ancient-fortress-36668-65d6224dad43.herokuapp.com"]
+    : ["http://localhost:3000"],
     methods: ["GET", "POST"]
   }
 });
