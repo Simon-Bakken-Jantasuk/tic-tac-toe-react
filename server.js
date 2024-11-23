@@ -6,11 +6,12 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
+const port = process.env.PORT || 4000
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    // origin: ["http://localhost:3000", "https://tic-tac-toe-react-socketio-03fdff0edcf9.herokuapp.com"],
-    origin: "*",
+    origin: ["http://localhost:3000", "https://tic-tac-toe-react-socketio-03fdff0edcf9.herokuapp.com", `wss://tic-tac-toe-react-socketio-03fdff0edcf9.herokuapp.com:${port}`],
     methods: ["GET", "POST"]
   }
 });
@@ -93,7 +94,6 @@ io.on("connection", (socket) => {
   });
 });
 
-const port = process.env.PORT || 4000
 server.listen(port, () => {
   console.log("Server is running on port 4000");
 });
