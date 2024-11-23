@@ -11,7 +11,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.NODE_ENV === "production"
-    ? ["https://ancient-fortress-36668-65d6224dad43.herokuapp.com"]
+    ? ["https://mysterious-ravine-23326-f566692a40b9.herokuapp.com"]
     : ["http://localhost:3000"],
     methods: ["GET", "POST"]
   }
