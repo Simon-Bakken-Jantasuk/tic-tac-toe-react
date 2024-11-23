@@ -15,6 +15,8 @@ const io = new Server(server, {
   }
 });
 
+app.use(express.static("build"));  
+
 const onlinePlayers = {}; 
 
 io.on("connection", (socket) => {
