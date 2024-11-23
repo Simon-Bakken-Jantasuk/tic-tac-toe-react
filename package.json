@@ -1,5 +1,4 @@
 {
-  "homepage": "https://simon-bakken-jantasuk.github.io/tic-tac-toe-react",
   "name": "react.dev",
   "version": "0.0.0",
   "main": "/src/index.js",
@@ -8,8 +7,6 @@
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
     "dev": "concurrently \"nodemon server.js\" \"npm start\""
   },
   "dependencies": {
@@ -22,8 +19,7 @@
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0",
-    "gh-pages": "^6.2.0"
+    "concurrently": "^9.1.0"
   },
   "browserslist": {
     "production": [
